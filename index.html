@@ -140,6 +140,14 @@
   @media (max-width:560px){
     .stage{ padding:30px 18px 0; }
     .detail{ margin:16px 14px 30px; }
+    /* 窄屏整体等比缩小牌堆, 让扇形展开的四张都落在视口内 */
+    .deck{ height:150px; transform:scale(.75); transform-origin:top center; }
+  }
+  @media (max-width:440px){
+    .deck{ height:126px; transform:scale(.62); }
+  }
+  @media (max-width:380px){
+    .deck{ height:112px; transform:scale(.55); }
   }
 </style>
 </head>
