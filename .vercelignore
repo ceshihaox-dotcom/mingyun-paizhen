@@ -1,0 +1,9 @@
+# 只部署静态成品: index.html / 牌库.html / 维度.html / data.js / fonts/
+# 下面这些是开发/设计产物, 不上线
+_build
+_serve.js
+support.js
+命运牌阵·翻卡变体.dc.html
+assets
+*.bak.html
+牌库-showcase.html

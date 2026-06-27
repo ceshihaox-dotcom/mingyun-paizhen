@@ -1,0 +1,13 @@
+# 构建/开发产物(与私有源数据项目耦合, 含本地绝对路径, 不入公开仓)
+_build/
+support.js
+*.dc.html
+牌库-showcase.html
+assets/
+
+# 依赖 / 系统
+node_modules/
+.DS_Store
+Thumbs.db
+.vercel/
+*.log

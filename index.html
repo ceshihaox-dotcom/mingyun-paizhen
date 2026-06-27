@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>命運牌陣 · Tirage du Destin</title>
+<!-- 拉丁展示字自托管(国内不依赖 Google: Cinzel / Cormorant / Pinyon) -->
+<link rel="stylesheet" href="fonts/latin.css">
+<!-- 中文走国内可达的 Google Fonts 镜像; 取不到则回落系统衬线 -->
+<link rel="preconnect" href="https://fonts.loli.net">
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+<link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:48px 20px;
+    background:radial-gradient(120% 100% at 50% 0%,#e7e0ef,#d6cee2);
+    font-family:'Noto Serif SC',serif;
+  }
+
+  /* ===== 面板外壳 ===== */
+  .panel{
+    width:620px; max-width:100%;
+    height:min(860px,calc(100vh - 160px));   /* 定高=与牌库一致 → 不随词条长短缩放、两页同尺寸 */
+    display:flex; flex-direction:column;
+    background:#f7f4f9; border-radius:2px; position:relative; overflow:hidden;
+    box-shadow:0 20px 54px rgba(58,46,30,.26),
+      inset 0 0 0 1px #e0d6e6, inset 0 0 0 5px #f7f4f9,
+      inset 0 0 0 6px #8a78a4, inset 0 0 0 7px #f7f4f9, inset 0 0 0 8px #cbbdd0;
+  }
+  .corner{ position:absolute; width:7px; height:7px; background:#8a78a4; transform:rotate(45deg); pointer-events:none; }
+  .lace{ position:absolute; left:30px; right:30px; height:11px; opacity:.8; pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='11'%3E%3Cpath d='M1 1 Q11 14 21 1' fill='none' stroke='%238a78a4' stroke-width='0.7'/%3E%3Ccircle cx='11' cy='9' r='1' fill='%23cbbdd0'/%3E%3C/svg%3E") repeat-x center; }
+
+  .stage{ padding:38px 40px 0; position:relative; flex:none; }
+
+  /* ===== 左右上角按钮(我们做的: NSFW + 牌库入口) ===== */
+  .toprow{ display:flex; justify-content:space-between; align-items:flex-start; min-height:18px; margin-bottom:8px; }
+  /* 题材筛选: 默认折叠(只显当前选择), 点开多选 */
+  .tonewrap{ position:relative; }
+  .tonebtn{ font:500 9.5px 'Cinzel','Noto Sans SC'; letter-spacing:.06em; color:#837b90; opacity:.62; cursor:pointer;
+    border:1px solid #e0d6e6; border-radius:1px; padding:3px 9px; user-select:none; white-space:nowrap; }
+  .tonebtn:hover{ opacity:1; border-color:#cbbdd0; }
+  .tonepop{ position:absolute; left:0; top:25px; z-index:30; display:none; flex-wrap:wrap; gap:5px; width:max-content; max-width:280px;
+    background:#fbf9fc; border-radius:2px; padding:8px; box-shadow:0 10px 30px rgba(58,46,70,.3), inset 0 0 0 1px #8a78a4; }
+  .tonepop.open{ display:flex; }
+  .tch{ font:500 9px 'Cinzel','Noto Sans SC'; letter-spacing:.04em; padding:3px 9px; border:1px solid #cbbdd0; border-radius:1px;
+    color:#837b90; cursor:pointer; opacity:.75; user-select:none; }
+  .tch.on{ border-color:#8a78a4; color:#5d5274; background:rgba(138,120,164,.12); opacity:1; }
+  .lib-entry{ color:#9286a6; opacity:.5; text-decoration:none; font:500 9.5px 'Cinzel'; letter-spacing:.14em; transition:opacity .2s; }
+  .lib-entry:hover{ opacity:1; }
+
+  /* ===== 标题 ===== */
+  .title-cn{ font:900 27px 'Noto Serif SC'; color:#34303d; letter-spacing:.04em; margin-top:8px; }
+  .title-fr{ font:400 21px 'Pinyon Script'; color:#9286a6; margin-top:-2px; }
+
+  /* ===== 牌区 ===== */
+  .deck{ position:relative; height:200px; margin-top:14px; }
+  .deck-anchor{ position:absolute; left:50%; top:0; width:0; height:0; }
+  .card{
+    position:absolute; left:-58px; top:6px; width:116px; height:172px;
+    transition:transform .62s cubic-bezier(.3,.85,.28,1);
+  }
+  /* 默认：叠成一摞 */
+  .card:nth-child(1){ transform:translate(0,0)   rotate(-3deg); }
+  .card:nth-child(2){ transform:translate(0,-1px) rotate(-1deg); }
+  .card:nth-child(3){ transform:translate(0,1px)  rotate(1deg); }
+  .card:nth-child(4){ transform:translate(0,2px)  rotate(3deg); }
+  /* 抽卡：弧形铺开 */
+  .panel.drawn .card:nth-child(1){ transform:translate(-198px,12px) rotate(-9deg); }
+  .panel.drawn .card:nth-child(2){ transform:translate(-66px,-3px)  rotate(-3deg); }
+  .panel.drawn .card:nth-child(3){ transform:translate(66px,-3px)   rotate(3deg); }
+  .panel.drawn .card:nth-child(4){ transform:translate(198px,12px)  rotate(9deg); }
+
+  .perspective{ width:100%; height:100%; perspective:1000px; }
+  .flip{ position:relative; width:100%; height:100%; transform-style:preserve-3d;
+    transition:transform .6s cubic-bezier(.45,.05,.3,1); transform:rotateY(0deg); }
+  .panel.drawn .flip{ transform:rotateY(180deg); }
+  /* 逐张翻面延迟 */
+  .card:nth-child(1) .flip{ transition-delay:.62s; }
+  .card:nth-child(2) .flip{ transition-delay:.78s; }
+  .card:nth-child(3) .flip{ transition-delay:.94s; }
+  .card:nth-child(4) .flip{ transition-delay:1.1s; }
+
+  .face{ position:absolute; inset:0; border-radius:4px; overflow:hidden; }
+  .back{ display:flex; align-items:center; justify-content:center; opacity:1;
+    transition:opacity .05s linear; }
+  .front{ padding:14px 10px; display:flex; flex-direction:column; align-items:center;
+    text-align:center; transform:rotateY(180deg); opacity:0; transition:opacity .05s linear; }
+  .panel.drawn .back{ opacity:0; }
+  .panel.drawn .front{ opacity:1; }
+  /* 翻面后再切换正反面 */
+  .card:nth-child(1) .back,.card:nth-child(1) .front{ transition-delay:.92s; }
+  .card:nth-child(2) .back,.card:nth-child(2) .front{ transition-delay:1.08s; }
+  .card:nth-child(3) .back,.card:nth-child(3) .front{ transition-delay:1.24s; }
+  .card:nth-child(4) .back,.card:nth-child(4) .front{ transition-delay:1.4s; }
+
+  .back-p{ background:#eee7f1;
+    box-shadow:inset 0 0 0 1px #34303d, inset 0 0 0 3px #eee7f1, inset 0 0 0 4px #8a78a4, inset 0 0 0 6px #eee7f1, inset 0 0 0 7px #cbbdd0; }
+  .front-p{ background:#fbf9fc;
+    box-shadow:inset 0 0 0 1px #34303d, inset 0 0 0 3px #fbf9fc, inset 0 0 0 4px #cbbdd0; }
+  .back-r{ background:#f0eaf4;
+    box-shadow:inset 0 0 0 1px #9a6e88, inset 0 0 0 3px #f0eaf4, inset 0 0 0 4px #b88aa4, inset 0 0 0 6px #f0eaf4, inset 0 0 0 7px #cbbdd0; }
+  .front-r{ background:#fbf6fb;
+    box-shadow:inset 0 0 0 1px #9a6e88, inset 0 0 0 3px #fbf6fb, inset 0 0 0 4px #cbbdd0; }
+
+  .roman{ font:500 9px 'Cinzel'; letter-spacing:.12em; color:#9286a6; position:relative; }
+  .roman-r{ color:#a87c96; }
+  .big{ margin:auto 0; font:900 30px 'Noto Serif SC'; color:#34303d; line-height:1.08; position:relative; }
+  .sub{ font:400 9.5px 'Noto Serif SC'; color:#9286a6; position:relative; }
+
+  /* ===== 抽卡按钮 ===== */
+  .draw-wrap{ text-align:center; margin-top:6px; }
+  .draw-btn{ padding:10px 30px; border:1px solid #8a78a4; border-radius:1px;
+    background:transparent; color:#5d5274; font:600 13px 'Cinzel'; letter-spacing:.2em; cursor:pointer; transition:background .2s,color .2s; }
+  .draw-btn:hover{ background:#8a78a4; color:#fff; }
+
+  /* ===== 详情：始终占位，只做透明度/位移动画(CD 修复关键: 不 display:none→不塌不闪) ===== */
+  /* 详述: flex:1 填满定高面板的下半 → 面板恒定不缩放; 词条长就内部滚动(滚动条隐藏) */
+  .detail{ flex:1; min-height:0; overflow-y:auto;
+    scrollbar-width:none; -ms-overflow-style:none;
+    margin:16px 30px 34px; padding:22px 24px 20px; position:relative;
+    background:#fbf9fc; box-shadow:inset 0 0 0 1px #8a78a4;
+    opacity:0; transform:translateY(16px);
+    transition:opacity .7s, transform .7s; }
+  .detail::-webkit-scrollbar{ width:0; height:0; display:none; }
+  .detail.show{ opacity:1; transform:translateY(0); }
+
+  .detail h3{ margin:8px 0 0; font:900 28px 'Noto Serif SC'; color:#34303d; }
+  .detail .fr{ font:400 19px 'Pinyon Script'; color:#9286a6; }
+  .detail .meta{ font:500 12.5px 'Cormorant Garamond'; font-style:italic; color:#9a6e88; letter-spacing:.04em; margin-top:4px; }
+  .detail p.body{ margin:18px 0 0; font:400 14px/1.95 'Noto Serif SC'; color:#34303d; text-wrap:pretty; }
+  .detail .tags{ font:500 11.5px/1.7 'Noto Serif SC'; color:#8a78a4; text-align:center; font-style:italic; margin-top:14px; }
+  .detail .nota{ margin-top:14px; padding-top:12px; border-top:1px solid #e0d6e6; display:flex; gap:13px; align-items:flex-start; }
+  .detail .nota span{ font:500 10px 'Cinzel'; letter-spacing:.16em; color:#9286a6; padding-top:2px; flex:none; }
+  .detail .nota p{ margin:0; font:400 11.5px/1.7 'Noto Serif SC'; color:#837b90; }
+
+  @media (max-width:560px){
+    .stage{ padding:30px 18px 0; }
+    .detail{ margin:16px 14px 30px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="panel" id="panel">
+    <!-- 四角钻 -->
+    <div class="corner" style="left:14px;top:14px"></div>
+    <div class="corner" style="right:14px;top:14px"></div>
+    <div class="corner" style="left:14px;bottom:14px"></div>
+    <div class="corner" style="right:14px;bottom:14px"></div>
+    <!-- 上下蕾丝 -->
+    <div class="lace" style="top:20px"></div>
+    <div class="lace" style="bottom:20px;transform:scaleY(-1)"></div>
+
+    <div class="stage">
+      <!-- 左右上角按钮 -->
+      <div class="toprow">
+        <div class="tonewrap">
+          <span class="tonebtn" id="toneBtn">题材</span>
+          <div class="tonepop" id="tonePop">
+            <span class="tch" data-k="all">全部</span>
+            <span class="tch on" data-k="daily">日常</span>
+            <span class="tch on" data-k="mixed">混合</span>
+            <span class="tch on" data-k="conflict">冲突</span>
+            <span class="tch" data-k="nsfw">NSFW</span>
+          </div>
+        </div>
+        <a class="lib-entry" href="牌库.html" title="牌库索引册">❖&#8201;INDEX</a>
+      </div>
+
+      <!-- 标题 -->
+      <div style="text-align:center">
+        <svg width="40" height="52" viewBox="0 0 40 52" style="display:block;margin:0 auto"><g fill="none" stroke="#8a78a4" stroke-width="1.2"><circle cx="20" cy="20" r="11"/><path d="M20 2 L20 50 M6 20 L34 20"/><circle cx="20" cy="20" r="4"/></g><g fill="#cbbdd0" opacity=".5"><circle cx="20" cy="9" r="1.4"/><circle cx="9" cy="20" r="1.4"/><circle cx="31" cy="20" r="1.4"/><circle cx="20" cy="31" r="1.4"/></g></svg>
+        <div class="title-cn">命運牌陣</div>
+        <div class="title-fr">Tirage du Destin</div>
+      </div>
+
+      <!-- 牌区 -->
+      <div class="deck">
+        <div class="deck-anchor">
+          <!-- 卡 I 母題 -->
+          <div class="card">
+            <div class="perspective"><div class="flip">
+              <div class="face back back-p">
+                <svg width="62" height="62" viewBox="0 0 62 62"><g fill="none" stroke="#8a78a4" stroke-width=".9"><circle cx="31" cy="31" r="23"/><circle cx="31" cy="31" r="15"/><path d="M31 8 Q44 18 44 31 Q44 44 31 54 Q18 44 18 31 Q18 18 31 8Z"/><path d="M8 31 Q18 18 31 18 Q44 18 54 31 Q44 44 31 44 Q18 44 8 31Z"/></g><circle cx="31" cy="31" r="3.4" fill="#9a6e88"/><g fill="#cbbdd0" opacity=".6"><circle cx="31" cy="12" r="1.6"/><circle cx="31" cy="50" r="1.6"/><circle cx="12" cy="31" r="1.6"/><circle cx="50" cy="31" r="1.6"/></g></svg>
+              </div>
+              <div class="face front front-p">
+                <div class="roman">I · 母題</div>
+                <div class="big" data-slot="motif-name">命運</div>
+                <div class="sub" data-slot="motif-sub"></div>
+              </div>
+            </div></div>
+          </div>
+          <!-- 卡 II 時空 -->
+          <div class="card">
+            <div class="perspective"><div class="flip">
+              <div class="face back back-p">
+                <svg width="62" height="62" viewBox="0 0 62 62"><g fill="none" stroke="#8a78a4" stroke-width=".9"><circle cx="31" cy="31" r="23"/><circle cx="31" cy="31" r="15"/><path d="M31 8 Q44 18 44 31 Q44 44 31 54 Q18 44 18 31 Q18 18 31 8Z"/><path d="M8 31 Q18 18 31 18 Q44 18 54 31 Q44 44 31 44 Q18 44 8 31Z"/></g><circle cx="31" cy="31" r="3.4" fill="#9a6e88"/><g fill="#cbbdd0" opacity=".6"><circle cx="31" cy="12" r="1.6"/><circle cx="31" cy="50" r="1.6"/><circle cx="12" cy="31" r="1.6"/><circle cx="50" cy="31" r="1.6"/></g></svg>
+              </div>
+              <div class="face front front-p">
+                <div class="roman">II · 時空</div>
+                <div class="big" style="font-size:21px" data-slot="coord-name">時空</div>
+                <div class="sub" data-slot="coord-sub"></div>
+              </div>
+            </div></div>
+          </div>
+          <!-- 卡 III 身份 -->
+          <div class="card">
+            <div class="perspective"><div class="flip">
+              <div class="face back back-p">
+                <svg width="62" height="62" viewBox="0 0 62 62"><g fill="none" stroke="#8a78a4" stroke-width=".9"><circle cx="31" cy="31" r="23"/><circle cx="31" cy="31" r="15"/><path d="M31 8 Q44 18 44 31 Q44 44 31 54 Q18 44 18 31 Q18 18 31 8Z"/><path d="M8 31 Q18 18 31 18 Q44 18 54 31 Q44 44 31 44 Q18 44 8 31Z"/></g><circle cx="31" cy="31" r="3.4" fill="#9a6e88"/><g fill="#cbbdd0" opacity=".6"><circle cx="31" cy="12" r="1.6"/><circle cx="31" cy="50" r="1.6"/><circle cx="12" cy="31" r="1.6"/><circle cx="50" cy="31" r="1.6"/></g></svg>
+              </div>
+              <div class="face front front-p">
+                <div class="roman">III · 身份</div>
+                <div class="big" style="font-size:27px" data-slot="identity-name">身份</div>
+                <div class="sub" data-slot="identity-sub"></div>
+              </div>
+            </div></div>
+          </div>
+          <!-- 卡 IV 變數(玫瑰) -->
+          <div class="card">
+            <div class="perspective"><div class="flip">
+              <div class="face back back-r">
+                <svg width="62" height="62" viewBox="0 0 62 62"><g fill="none" stroke="#9a6e88" stroke-width=".9"><circle cx="31" cy="31" r="23"/><path d="M16 16 L46 46 M46 16 L16 46"/><circle cx="31" cy="31" r="9"/></g><circle cx="31" cy="31" r="3" fill="#9a6e88"/></svg>
+              </div>
+              <div class="face front front-r">
+                <div class="roman roman-r">IV · 變數</div>
+                <div class="big" style="font-size:27px;color:#9a6e88" data-slot="variable-name">變數</div>
+                <div class="sub" style="color:#b88aa4" data-slot="variable-sub"></div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 抽卡按钮 -->
+      <div class="draw-wrap">
+        <button class="draw-btn" id="drawBtn">Draw a Card</button>
+      </div>
+    </div>
+
+    <!-- 详情(始终占位) -->
+    <div class="detail" id="detail">
+      <div style="text-align:center">
+        <div style="display:inline-flex;align-items:center;gap:9px"><svg width="46" height="8" viewBox="0 0 46 8"><path d="M0 4 H30 M46 4 H36" stroke="#8a78a4" stroke-width=".9"/><path d="M33 1 Q36 4 33 7 Q30 4 33 1Z" fill="#cbbdd0"/></svg><span style="font:500 10px 'Cinzel';letter-spacing:.3em;color:#9286a6">LOCUS</span><svg width="46" height="8" viewBox="0 0 46 8" style="transform:scaleX(-1)"><path d="M0 4 H30 M46 4 H36" stroke="#8a78a4" stroke-width=".9"/><path d="M33 1 Q36 4 33 7 Q30 4 33 1Z" fill="#9286a6"/></svg></div>
+        <h3 data-slot="d-title">—</h3>
+        <div class="fr" data-slot="d-script">a day elsewhere</div>
+        <div class="meta" data-slot="d-meta"></div>
+      </div>
+      <p class="body" data-slot="d-body"></p>
+      <div class="tags" data-slot="d-kw"></div>
+      <div class="nota" data-slot="d-nota-wrap">
+        <span>NOTA</span>
+        <p data-slot="d-nota"></p>
+      </div>
+    </div>
+  </div>
+
+<script src="./data.js"></script>
+<script src="./ck-custom.js"></script>
+<script>
+(function(){
+  var D = window.CK_DATA || {coords:[],motifs:[],identities:[],variables:[]};
+  var TONE = {daily:'体验生活', conflict:'冲突节点', mixed:'明暗交织'};
+  var panel  = document.getElementById('panel');
+  var btn    = document.getElementById('drawBtn');
+  var detail = document.getElementById('detail');
+  function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function clip(s,n){ s=s||''; return s.length>n ? s.slice(0,n)+'…' : s; }
+  function set(slot,val){ var el=document.querySelector('[data-slot="'+slot+'"]'); if(el) el.textContent=val||''; }
+  function shortDesc(s){ s=(s||'').replace(/^那个时代|^某/,''); var m=s.split(/[，。、—；]/)[0]; return clip(m,9); }
+
+  // ---- 题材筛选(可多选: 全部/日常/混合/冲突/NSFW), 默认折叠, 点开勾选, 选择记在本地 ----
+  var TONES; try{ TONES=JSON.parse(localStorage.getItem('ck_tones')||'null'); }catch(e){}
+  if(!TONES) TONES={daily:true,mixed:true,conflict:true,nsfw:false};
+  var TLABEL={daily:'日常',mixed:'混合',conflict:'冲突',nsfw:'NSFW'};
+  var toneBtn=document.getElementById('toneBtn'), tonePop=document.getElementById('tonePop');
+  function toneSummary(){ var on=['daily','mixed','conflict','nsfw'].filter(function(k){return TONES[k];});
+    return on.length===4?'全部':(on.length===0?'未选':on.map(function(k){return TLABEL[k];}).join('·')); }
+  function renderTones(){
+    if(toneBtn) toneBtn.textContent='题材 · '+toneSummary();
+    if(tonePop) [].forEach.call(tonePop.querySelectorAll('.tch'),function(c){ var k=c.getAttribute('data-k');
+      c.classList.toggle('on', k==='all' ? ['daily','mixed','conflict','nsfw'].every(function(x){return TONES[x];}) : !!TONES[k]); });
+    try{ localStorage.setItem('ck_tones',JSON.stringify(TONES)); }catch(e){}
+  }
+  if(toneBtn && tonePop){
+    toneBtn.addEventListener('click',function(e){ e.stopPropagation(); tonePop.classList.toggle('open'); });
+    tonePop.addEventListener('click',function(e){ e.stopPropagation(); var c=e.target.closest('.tch'); if(!c)return;
+      var k=c.getAttribute('data-k');
+      if(k==='all'){ ['daily','mixed','conflict','nsfw'].forEach(function(x){TONES[x]=true;}); }
+      else { TONES[k]=!TONES[k]; }
+      renderTones(); });
+    document.addEventListener('click',function(){ tonePop.classList.remove('open'); });
+    renderTones();
+  }
+
+  // 抽卡池: 自定义层合并 + 题材筛选(坐标按基调/nsfw 类目; 骰子只受 nsfw 闸)
+  function pool(type){
+    var arr = window.CKCustom ? CKCustom.pool(type) : (D[type]||[]);
+    if(type==='coords'){
+      if(!(TONES.daily||TONES.mixed||TONES.conflict||TONES.nsfw)) return arr;  // 一个没选=不限制, 防空抽
+      return arr.filter(function(c){ var cat=c.nsfw?'nsfw':c.t; return !!TONES[cat]; });
+    }
+    return arr.filter(function(x){ return !(x.nsfw && !TONES.nsfw); });  // 骰子: nsfw 闸
+  }
+
+  function fill(){
+    var mp=pool('motifs'), cp=pool('coords'), ip=pool('identities'), vp=pool('variables');
+    if(!mp.length||!cp.length||!ip.length||!vp.length) return;
+    var motif=rand(mp), coord=rand(cp), id=rand(ip), v=rand(vp);
+
+    set('motif-name', motif.n);
+    set('motif-sub', shortDesc(motif.d));
+    set('coord-name', coord.n.replace(/（.*?）/g,''));
+    set('coord-sub', coord.p);
+    set('identity-name', id.n);
+    set('identity-sub', shortDesc(id.d));
+    set('variable-name', v.n);
+    set('variable-sub', shortDesc(v.e||v.d));
+
+    // 详述(时空)
+    set('d-title', coord.n.replace(/（.*?）/g,''));
+    set('d-script', coord.en || 'a day elsewhere');
+    set('d-meta', coord.p.replace(/（.*?）/g,'') + '　·　' + (TONE[coord.t]||coord.t));
+    set('d-body', coord.s || coord.b || '');
+    set('d-kw', coord.a || '');
+    var notaWrap=document.querySelector('[data-slot="d-nota-wrap"]');
+    if(coord.b){ notaWrap.style.display=''; set('d-nota', coord.b); } else { notaWrap.style.display='none'; }
+  }
+
+  var drawn=false, busy=false;
+  function draw(){
+    if(busy) return;
+    busy=true;
+    if(!drawn){
+      fill();
+      requestAnimationFrame(function(){ panel.classList.add('drawn'); });
+      setTimeout(function(){ detail.classList.add('show'); }, 1450);  // 牌翻完后浮出
+      btn.textContent='Reshuffle';
+      drawn=true;
+      setTimeout(function(){ busy=false; }, 2200);
+    } else {
+      // 重抽: 先完整演"收牌"(牌叠合拢 + 逐张翻回背面, 约 1.7s), 演完再换数据重新发牌→ 全程不跳
+      detail.classList.remove('show');
+      panel.classList.remove('drawn');
+      setTimeout(function(){
+        fill();
+        requestAnimationFrame(function(){ panel.classList.add('drawn'); });
+        setTimeout(function(){ detail.classList.add('show'); }, 1450);
+        setTimeout(function(){ busy=false; }, 2200);
+      }, 1750);   // 等收牌动画走完(最后一张翻回背面 ~1.7s)
+    }
+  }
+  btn.addEventListener('click', draw);
+})();
+</script>
+</body>
+</html>

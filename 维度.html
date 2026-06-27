@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>命運牌庫 · 其他維度</title>
+<link rel="stylesheet" href="fonts/latin.css">
+<link rel="preconnect" href="https://fonts.loli.net">
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+<link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f4f9;--front:#fbf9fc;--ink:#34303d;--btn:#5d5274;--grey:#837b90;
+    --accent:#8a78a4;--line:#cbbdd0;--edge:#e0d6e6;--label:#9286a6;--rose:#9a6e88;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 100% at 50% 0%,#e7e0ef,#d6cee2);
+    font-family:'Noto Sans SC',sans-serif;color:var(--ink);padding:40px 16px}
+  @keyframes dimIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .wrap{width:620px;max-width:100%;height:min(860px,calc(100vh - 160px));
+    display:flex;flex-direction:column;overflow:hidden;
+    background:var(--paper);position:relative;border-radius:2px;
+    box-shadow:0 22px 60px rgba(58,46,70,.26),inset 0 0 0 1px var(--edge),inset 0 0 0 5px var(--paper),inset 0 0 0 6px var(--accent),inset 0 0 0 7px var(--paper),inset 0 0 0 8px var(--line);
+    animation:dimIn .4s ease both}
+  .back{position:absolute;left:30px;top:30px;z-index:3;color:var(--label);text-decoration:none;font:500 9.5px 'Cinzel';letter-spacing:.14em;opacity:.6}
+  .back:hover{opacity:1}
+  .nsfwtog{position:absolute;right:30px;top:30px;z-index:3;display:inline-flex;align-items:center;gap:4px;color:var(--grey);opacity:.5;cursor:pointer;font:500 9.5px 'Cinzel';letter-spacing:.14em;user-select:none}
+  .nsfwtog input{accent-color:var(--accent);width:11px;height:11px;cursor:pointer;margin:0}
+  @media(max-width:560px){.nsfwtog{right:18px}.back{left:18px}}
+
+  .head{text-align:center;flex:none;padding:34px 30px 0}
+  .head .zh{font:900 24px 'Noto Serif SC';color:var(--ink);letter-spacing:.04em}
+  .head .en{font:400 18px 'Pinyon Script';color:var(--label);margin-top:-2px}
+  .head .sub{font:500 11px 'Cinzel';letter-spacing:.26em;color:var(--label);margin-top:6px;text-transform:uppercase}
+
+  .tabs{display:flex;justify-content:center;gap:8px;margin:16px 0 12px;flex:none}
+  .tab{padding:6px 18px;border:1px solid var(--edge);border-radius:1px;background:transparent;cursor:pointer;
+    font:600 12px 'Cinzel','Noto Serif SC';letter-spacing:.08em;color:var(--grey);transition:.2s}
+  .tab.on{border-color:var(--accent);color:var(--btn);background:rgba(138,120,164,.08)}
+  .tab b{color:var(--label);font-weight:500;margin-left:5px;font-size:10px}
+
+  .subbar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 30px;margin-bottom:10px}
+  .count{font:500 11px 'Cinzel';letter-spacing:.16em;color:var(--label)}
+  .addbtn{border:1px solid var(--accent);background:transparent;color:var(--btn);cursor:pointer;
+    font:600 10.5px 'Cinzel','Noto Sans SC';letter-spacing:.1em;border-radius:1px;padding:4px 12px;transition:.2s}
+  .addbtn:hover{background:var(--accent);color:#fff}
+
+  .grid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;
+    padding:6px 30px 30px;margin:0 0 6px;
+    scrollbar-width:thin;scrollbar-color:#cbbdd0 transparent;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 18px),transparent 100%);
+    mask-image:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 18px),transparent 100%)}
+  .grid::-webkit-scrollbar{width:7px}
+  .grid::-webkit-scrollbar-track{background:transparent}
+  .grid::-webkit-scrollbar-thumb{background:#cbbdd0;border-radius:4px}
+  @media(max-width:560px){.grid{grid-template-columns:1fr;padding:6px 18px 26px}}
+
+  .card{position:relative;background:var(--front);box-shadow:inset 0 0 0 1px var(--edge);padding:14px 16px 13px;transition:opacity .25s}
+  .card .nm{font:700 16px 'Noto Serif SC';color:var(--ink);padding-right:42px}
+  .card .nf{margin-left:7px;font:500 8.5px 'Cinzel';letter-spacing:.08em;color:var(--rose);
+    border:1px solid var(--line);border-radius:1px;padding:0 4px;vertical-align:2px;opacity:.85}
+  .card .badge{margin-left:6px;font:500 8.5px 'Cinzel';letter-spacing:.06em;color:var(--accent);
+    border:1px solid var(--accent);border-radius:1px;padding:0 4px;vertical-align:2px;opacity:.75}
+  .card .ds{font:400 12.5px/1.65 'Noto Sans SC';color:var(--grey);margin-top:5px}
+  .card .tag{display:inline-block;margin-top:7px;font:500 9.5px 'Cinzel';letter-spacing:.1em;color:var(--rose);
+    border:1px solid var(--line);border-radius:1px;padding:1px 7px}
+  .card .ops{position:absolute;right:8px;top:7px;display:flex;gap:2px}
+  .card .op{width:18px;height:18px;line-height:16px;text-align:center;cursor:pointer;
+    color:var(--label);opacity:.4;font-size:12px;user-select:none;transition:.2s}
+  .card .op:hover{opacity:.95}
+  .card .op.blk:hover{color:var(--rose)}
+  .card.blocked{opacity:.42}
+  .card.blocked .nm{text-decoration:line-through;text-decoration-color:var(--rose)}
+  .card.blocked .op.blk{opacity:.95;color:var(--rose)}
+
+  /* 添加/编辑表单浮层 */
+  .ovl{position:fixed;inset:0;background:rgba(52,46,62,.32);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+  .ovl.on{display:flex}
+  .formcard{width:420px;max-width:100%;max-height:90vh;overflow-y:auto;background:var(--paper);border-radius:2px;
+    box-shadow:0 22px 60px rgba(58,46,70,.4),inset 0 0 0 1px var(--accent);padding:24px 24px 20px;
+    scrollbar-width:thin;scrollbar-color:#cbbdd0 transparent}
+  .formcard::-webkit-scrollbar{width:7px}.formcard::-webkit-scrollbar-thumb{background:#cbbdd0;border-radius:4px}
+  .ftitle{font:900 18px 'Noto Serif SC';color:var(--ink);text-align:center;margin-bottom:16px}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font:500 10px 'Cinzel';letter-spacing:.1em;color:var(--label);margin-bottom:4px;text-transform:uppercase}
+  .fld input[type=text],.fld textarea,.fld select{width:100%;border:1px solid var(--line);border-radius:1px;background:var(--front);
+    color:var(--ink);font:400 13px 'Noto Sans SC';padding:7px 9px;outline:none}
+  .fld input[type=text]:focus,.fld textarea:focus,.fld select:focus{border-color:var(--accent)}
+  .fld textarea{resize:vertical;min-height:52px;line-height:1.6}
+  .fld input[disabled]{color:var(--grey);background:#efeaf3}
+  .fnsfw{display:inline-flex;align-items:center;gap:5px;font:500 11px 'Noto Sans SC';color:var(--grey);cursor:pointer;user-select:none}
+  .fnsfw input{accent-color:var(--rose);width:13px;height:13px}
+  .fhint{font:400 10.5px/1.5 'Noto Sans SC';color:var(--label);margin:-6px 0 12px}
+  .fbtns{display:flex;align-items:center;gap:8px;margin-top:16px}
+  .fbtns button{border-radius:1px;cursor:pointer;font:600 12px 'Cinzel','Noto Sans SC';letter-spacing:.08em;padding:8px 16px;transition:.2s}
+  .b-save{border:1px solid var(--accent);background:var(--accent);color:#fff}
+  .b-save:hover{background:var(--btn)}
+  .b-ghost{border:1px solid var(--line);background:transparent;color:var(--grey)}
+  .b-ghost:hover{border-color:var(--accent);color:var(--btn)}
+  .b-reset{border:1px solid var(--rose);background:transparent;color:var(--rose)}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back" href="牌库.html" title="回牌库">✦&#8201;INDEX</a>
+    <label class="nsfwtog"><input type="checkbox" id="nsfw"> NSFW</label>
+    <div class="head">
+      <div class="zh">命運牌庫</div>
+      <div class="en">the other dice</div>
+      <div class="sub">Motif · Identity · Variable</div>
+    </div>
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-k="motifs">母題<b id="c-motifs"></b></button>
+      <button class="tab" data-k="identities">身份<b id="c-identities"></b></button>
+      <button class="tab" data-k="variables">變數<b id="c-variables"></b></button>
+    </div>
+    <div class="subbar">
+      <span class="count" id="count"></span>
+      <button class="addbtn" id="addBtn">✛ 添加</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <!-- 添加/编辑浮层 -->
+  <div class="ovl" id="ovl">
+    <div class="formcard">
+      <div class="ftitle" id="ftitle">添加</div>
+      <div class="fld"><label>名称</label><input type="text" id="f-n" maxlength="12"></div>
+      <div class="fld"><label id="l-d">简述</label><textarea id="f-d"></textarea></div>
+      <div class="fld" id="fld-extra" style="display:none"></div>
+      <div class="fld"><label class="fnsfw"><input type="checkbox" id="f-nsfw"> NSFW（成人向）</label></div>
+      <div class="fhint" id="fhint"></div>
+      <div class="fbtns">
+        <span style="flex:1"></span>
+        <button class="b-ghost" id="f-cancel">取消</button>
+        <button class="b-save" id="f-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+<script src="./data.js"></script>
+<script src="./ck-custom.js"></script>
+<script>
+(function(){
+  // 被牌库当作浮层(iframe)嵌入时, 隐藏"回牌库"链接(关闭交给浮层的 ✕)
+  if(window.top!==window.self){ var _bk=document.querySelector('.back'); if(_bk) _bk.style.display='none'; }
+  var TONE={daily:'日常',conflict:'冲突',mixed:'混合','通用':'通用'};
+  var cur='motifs';
+  var nsfwBox=document.getElementById('nsfw');
+  var grid=document.getElementById('grid'), ovl=document.getElementById('ovl');
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function visible(){ var all=CKCustom.all(cur); return nsfwBox.checked?all:all.filter(function(e){return !e.nsfw;}); }
+  function counts(){ ['motifs','identities','variables'].forEach(function(k){
+    var all=CKCustom.all(k); var n=nsfwBox.checked?all.length:all.filter(function(e){return !e.nsfw;}).length;
+    document.getElementById('c-'+k).textContent=n; }); }
+
+  function render(){
+    var arr=visible(); grid.innerHTML=''; var hid=0;
+    arr.forEach(function(e){
+      if(e._blocked)hid++;
+      var c=document.createElement('div'); c.className='card'+(e._blocked?' blocked':'');
+      var desc = cur==='variables' ? (e.e||e.d||'') : (e.d||'');
+      var tag = cur==='variables' ? '<span class="tag">'+esc(TONE[e.t]||e.t||'')+'</span>' : '';
+      var badge = e._custom ? '<span class="badge">自定义</span>' : '';
+      c.innerHTML =
+        '<div class="ops"><span class="op blk" title="屏蔽/恢复">'+(e._blocked?'＋':'×')+'</span></div>'+
+        '<div class="nm">'+esc(e.n)+(e.nsfw?'<span class="nf">R18</span>':'')+badge+'</div>'+
+        '<div class="ds">'+esc(desc)+'</div>'+tag;
+      c.querySelector('.op.blk').onclick=function(){ CKCustom.toggleBlock(cur,e.n); render(); };
+      grid.appendChild(c);
+    });
+    counts();
+    document.getElementById('count').textContent='共 '+arr.length+(hid?'  ·  已屏蔽 '+hid:'');
+  }
+
+  // ---- 表单 ----
+  var fN=document.getElementById('f-n'), fD=document.getElementById('f-d'), fNsfw=document.getElementById('f-nsfw'),
+      fExtra=document.getElementById('fld-extra'),
+      fTitle=document.getElementById('ftitle'), fHint=document.getElementById('fhint'), lD=document.getElementById('l-d');
+
+  function extraHTML(type, e){
+    e=e||{};
+    if(type==='variables') return '<label>影响 / 后果</label><textarea id="f-e">'+esc(e.e||'')+'</textarea>'+
+      '<label style="margin-top:10px">基调</label><select id="f-t">'+
+      ['daily','mixed','conflict'].map(function(t){return '<option value="'+t+'"'+(e.t===t?' selected':'')+'>'+TONE[t]+'</option>';}).join('')+'</select>';
+    if(type==='motifs') return '<label>叙事弧（可选，抽到时展开用）</label><textarea id="f-arc">'+esc(e.arc||'')+'</textarea>';
+    return '';
+  }
+
+  function openForm(){
+    var typeName = {motifs:'母題',identities:'身份',variables:'變數'}[cur];
+    fTitle.textContent = '添加 '+typeName;
+    fN.value=''; fN.disabled=false;
+    lD.textContent = cur==='variables' ? '一句话简述' : '简述';
+    fD.value='';
+    fNsfw.checked=false;
+    var ex = extraHTML(cur, {});
+    fExtra.style.display = ex? '' : 'none';
+    fExtra.innerHTML = ex;
+    fHint.textContent = '添加到你本地的版本，进抽卡、进列表；更新默认数据不会动它。';
+    ovl.classList.add('on'); fN.focus();
+  }
+  function closeForm(){ ovl.classList.remove('on'); }
+
+  document.getElementById('addBtn').onclick=function(){ openForm(); };
+  document.getElementById('f-cancel').onclick=closeForm;
+  ovl.onclick=function(ev){ if(ev.target===ovl) closeForm(); };
+
+  document.getElementById('f-save').onclick=function(){
+    var name=(fN.value||'').trim(); if(!name){ fN.focus(); return; }
+    var fields={ n:name, d:(fD.value||'').trim(), nsfw:fNsfw.checked };
+    if(cur==='variables'){ var fe=document.getElementById('f-e'),ft=document.getElementById('f-t');
+      fields.e=fe?(fe.value||'').trim():''; fields.t=ft?ft.value:'daily'; }
+    if(cur==='motifs'){ var fa=document.getElementById('f-arc'); fields.arc=fa?(fa.value||'').trim():''; }
+    if(!CKCustom.addEntry(cur, fields)){ alert('这个名字已经有了，换一个。'); return; }
+    closeForm(); render();
+  };
+
+  nsfwBox.addEventListener('change', render);
+  document.getElementById('tabs').addEventListener('click',function(ev){
+    var b=ev.target.closest('.tab'); if(!b)return;
+    cur=b.getAttribute('data-k');
+    [].forEach.call(document.querySelectorAll('.tab'),function(t){t.classList.toggle('on',t===b);});
+    render();
+  });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeForm(); });
+  render();
+})();
+</script>
+</body>
+</html>
